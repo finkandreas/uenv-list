@@ -56,6 +56,7 @@ func (h listHandler) Get(w http.ResponseWriter, r *http.Request) {
     arch_match := r.URL.Query().Get("arch")
     app_match := r.URL.Query().Get("app")
     version_match := r.URL.Query().Get("version")
+    namespace_match := r.URL.Query().Get("namespace")
 
     var ret jFrogSearchReturn
     reduced_sizes := make(map[string]int64)
@@ -63,9 +64,12 @@ func (h listHandler) Get(w http.ResponseWriter, r *http.Request) {
     for _, res := range lastJFrogResults {
         reduced_sizes[res.Path] += res.Size
         if res.Name == filename {
-            // path == [build/deploy]/<cluster>/<arch>/<app>/<version>/TAG
+            // path == <namespace>/<cluster>/<arch>/<app>/<version>/TAG
+            // by default if no namespace match is specified it will match "build" and "deploy" (to keep old behaviour)
             pathComponents := strings.Split(res.Path, "/")
             if len(pathComponents) >= 5 &&
+              ( (namespace_match == "" && (pathComponents[0] == "build" || pathComponents[0] == "deploy")) ||
+                (namespace_match == pathComponents[0]) ) &&
               (cluster_match == "" || pathComponents[1] == cluster_match) &&
               (arch_match == "" || pathComponents[2] == arch_match) &&
               (app_match == "" || pathComponents[3] == app_match) &&
