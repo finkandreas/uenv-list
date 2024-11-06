@@ -22,4 +22,4 @@ jobs:
         with:
           platforms: linux/amd64
           push: true
-          tags: ghcr.io/${{ github.repository_owner }}/uenv-list:1.0
+          tags: ghcr.io/${{ github.repository_owner }}/uenv-list:1.1
