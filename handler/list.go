@@ -48,9 +48,13 @@ type listHandler struct {
 func (h listHandler) Get(w http.ResponseWriter, r *http.Request) {
     if lastJFrogResults == nil || time.Now().Unix() - lastFetchTimestamp > h.config.CacheTimeout {
         if returncode, err := h.fetchFromJFrog(); err != nil {
-            w.WriteHeader(returncode)
-            w.Write([]byte(err.Error()))
-            return
+            log.Printf("Failed fetching results from JFrog. err=%v\n", err)
+            if lastJFrogResults == nil {
+                // do not continue if we have no JFrog results cached
+                w.WriteHeader(returncode)
+                w.Write([]byte(err.Error()))
+                return
+            }
         }
     }
     cluster_match := r.URL.Query().Get("cluster")
