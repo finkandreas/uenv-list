@@ -24,6 +24,7 @@ type jFrogSearchResult struct {
     Created string `json:"created"`
     ActualSha1 string `json:"actual_sha1"`
     Sha256 string `json:"sha256"`
+    SqfsSha256 string `json:"sqfs_sha256"`
     Stats []jFrogDownloadStats
 }
 type jFrogSearchReturn struct {
@@ -60,9 +61,13 @@ func (h listHandler) Get(w http.ResponseWriter, r *http.Request) {
 
     var ret jFrogSearchReturn
     reduced_sizes := make(map[string]int64)
+    sqfs_sha256 := make(map[string]string)
     filename := "manifest.json"
     for _, res := range lastJFrogResults {
         reduced_sizes[res.Path] += res.Size
+        if res.Size > 100*1024*1024 {
+            sqfs_sha256[res.Path] = res.Sha256
+        }
         if res.Name == filename {
             // path == <namespace>/<cluster>/<arch>/<app>/<version>/TAG
             // by default if no namespace match is specified it will match "build" and "deploy" (to keep old behaviour)
@@ -80,6 +85,7 @@ func (h listHandler) Get(w http.ResponseWriter, r *http.Request) {
     }
     for idx := range ret.Results {
         ret.Results[idx].Size = reduced_sizes[ret.Results[idx].Path]
+        ret.Results[idx].SqfsSha256 = sqfs_sha256[ret.Results[idx].Path]
     }
 
     if respData, err := json.Marshal(ret); err != nil {
