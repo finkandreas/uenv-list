@@ -17,8 +17,8 @@ var retryClient = &retryablehttp.Client{
     HTTPClient:   cleanhttp.DefaultPooledClient(),
     Logger:       nil,
     RetryWaitMin: 1*time.Second,
-    RetryWaitMax: 300*time.Second,
-    RetryMax:     30,
+    RetryWaitMax: 10*time.Second,
+    RetryMax:     10,
     CheckRetry:   retryablehttp.DefaultRetryPolicy,
     Backoff:      retryablehttp.DefaultBackoff,
 }
@@ -52,6 +52,8 @@ func DoRequest(method string, url string, headers map[string]string, data []byte
             req.Header.Add(k,v)
         }
     }
+
+    retryClient.HTTPClient.Timeout = time.Duration(15*time.Second)
     resp, err := retryClient.Do(req)
     if err != nil {
         return nil, err
